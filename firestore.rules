@@ -1,0 +1,132 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function email() {
+      return request.auth.token.email.lower();
+    }
+
+    function memberExists() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/members/$(email()));
+    }
+
+    function authorized() {
+      return memberExists();
+    }
+
+    function admin() {
+      return memberExists() &&
+        get(/databases/$(database)/documents/members/$(email())).data.role == 'admin';
+    }
+
+    function validNewMember(memberEmail) {
+      return request.resource.data.keys().hasOnly([
+          'email', 'characterId', 'characterName', 'role', 'createdAt'
+        ]) &&
+        request.resource.data.email == memberEmail &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 3 &&
+        request.resource.data.email.size() <= 254 &&
+        request.resource.data.characterId is string &&
+        request.resource.data.characterId.size() > 0 &&
+        request.resource.data.characterId.size() <= 80 &&
+        request.resource.data.characterName is string &&
+        request.resource.data.characterName.size() > 0 &&
+        request.resource.data.characterName.size() <= 40 &&
+        request.resource.data.role == 'player' &&
+        request.resource.data.createdAt == request.time;
+    }
+
+    function validNewCharacter() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'credits', 'createdAt', 'updatedAt'
+        ]) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 40 &&
+        request.resource.data.credits is int &&
+        request.resource.data.credits >= 0 &&
+        request.resource.data.credits <= 1000000000 &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+    }
+
+    function validCharacterUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'credits', 'updatedAt', 'updatedBy'
+        ]) &&
+        request.resource.data.credits is int &&
+        request.resource.data.credits >= 0 &&
+        request.resource.data.credits <= 1000000000 &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.updatedBy == email();
+    }
+
+    function validNewItem() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'quantity', 'notes', 'status', 'createdAt', 'updatedAt', 'updatedBy'
+        ]) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 80 &&
+        request.resource.data.quantity is int &&
+        request.resource.data.quantity >= 1 &&
+        request.resource.data.quantity <= 999999 &&
+        request.resource.data.notes is string &&
+        request.resource.data.notes.size() <= 400 &&
+        request.resource.data.status in ['guardado', 'equipado'] &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.updatedBy == email();
+    }
+
+    function validItemUpdate() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'quantity', 'notes', 'status', 'createdAt', 'updatedAt', 'updatedBy'
+        ]) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 80 &&
+        request.resource.data.quantity is int &&
+        request.resource.data.quantity >= 1 &&
+        request.resource.data.quantity <= 999999 &&
+        request.resource.data.notes is string &&
+        request.resource.data.notes.size() <= 400 &&
+        request.resource.data.status in ['guardado', 'equipado'] &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.updatedBy == email();
+    }
+
+    match /members/{memberEmail} {
+      allow get: if signedIn() && (memberEmail == email() || admin());
+      allow list: if admin();
+      allow create: if admin() && validNewMember(memberEmail);
+      allow update: if false;
+      allow delete: if admin() && resource.data.role != 'admin';
+    }
+
+    match /characters/{characterId} {
+      allow read: if authorized();
+      allow create: if admin() && validNewCharacter();
+      allow update: if authorized() && validCharacterUpdate();
+      allow delete: if admin();
+
+      match /items/{itemId} {
+        allow read: if authorized();
+        allow create: if authorized() && validNewItem();
+        allow update: if authorized() && validItemUpdate();
+        allow delete: if authorized();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

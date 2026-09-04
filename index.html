@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta name="description" content="Inventario compartido de la tripulación de Amanecer Rebelde." />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; frame-src https://accounts.google.com https://*.firebaseapp.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; upgrade-insecure-requests" />
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Amanecer Rebelde</title>
+  </head>
+  <body>
+    <div class="starfield" aria-hidden="true"></div>
+
+    <main id="login-view" class="auth-shell">
+      <section class="auth-card">
+        <div class="brand-mark" aria-hidden="true">AR</div>
+        <p class="eyebrow">Registro de la tripulación</p>
+        <h1>Amanecer Rebelde</h1>
+        <p class="auth-copy">Inventario y créditos compartidos de la mesa.</p>
+        <button id="login-button" class="button button-primary button-wide" type="button">
+          <span class="google-g">G</span>
+          Entrar con Google
+        </button>
+        <p class="privacy-note">Solo pueden acceder los correos autorizados por los administradores.</p>
+      </section>
+    </main>
+
+    <main id="denied-view" class="auth-shell" hidden>
+      <section class="auth-card">
+        <div class="status-icon status-denied" aria-hidden="true">!</div>
+        <p class="eyebrow">Acceso restringido</p>
+        <h1>Sin autorización</h1>
+        <p id="denied-email" class="auth-copy"></p>
+        <p class="privacy-note">Pedile a Dyc o Teebo que agregue tu correo desde Configuración.</p>
+        <button id="denied-signout" class="button button-secondary button-wide" type="button">Salir</button>
+      </section>
+    </main>
+
+    <div id="loading-view" class="loading-shell" hidden>
+      <div class="loader" aria-hidden="true"></div>
+      <p>Conectando con la tripulación…</p>
+    </div>
+
+    <div id="app-view" class="app-shell" hidden>
+      <header class="topbar">
+        <div class="brand-compact">
+          <div class="brand-mark brand-mark-small" aria-hidden="true">AR</div>
+          <div>
+            <p class="eyebrow">Inventario compartido</p>
+            <h1>Amanecer Rebelde</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="install-button" class="icon-button install-button" type="button" hidden aria-label="Instalar aplicación" title="Instalar aplicación">
+            <span aria-hidden="true">↓</span>
+          </button>
+          <button id="profile-button" class="avatar-button" type="button" aria-label="Abrir menú de cuenta">
+            <img id="user-avatar" alt="" referrerpolicy="no-referrer" />
+            <span id="user-initial" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div id="profile-menu" class="profile-menu" hidden>
+          <strong id="profile-name"></strong>
+          <span id="profile-email"></span>
+          <button id="signout-button" class="text-button" type="button">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <nav class="tabbar" aria-label="Secciones">
+        <button class="tab is-active" type="button" data-view="inventories">Inventarios</button>
+        <button id="settings-tab" class="tab" type="button" data-view="settings" hidden>Configuración</button>
+      </nav>
+
+      <main class="content">
+        <section id="inventories-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Tripulación</p>
+              <h2>Inventarios</h2>
+            </div>
+            <span id="sync-status" class="sync-status">En línea</span>
+          </div>
+
+          <div id="character-tabs" class="character-tabs" role="tablist" aria-label="Personajes"></div>
+          <div id="character-panel" class="character-panel"></div>
+        </section>
+
+        <section id="settings-section" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Administración</p>
+              <h2>Configuración</h2>
+            </div>
+          </div>
+
+          <article class="panel settings-panel">
+            <div class="panel-heading">
+              <div>
+                <h3>Personajes autorizados</h3>
+                <p>Quienes estén en esta lista podrán acceder y editar todos los inventarios.</p>
+              </div>
+            </div>
+            <div id="members-list" class="members-list"></div>
+          </article>
+
+          <article class="panel settings-panel">
+            <div class="panel-heading">
+              <div>
+                <h3>Agregar personaje</h3>
+                <p>El correo debe coincidir con la cuenta de Google del jugador.</p>
+              </div>
+            </div>
+            <form id="member-form" class="form-grid">
+              <label>
+                <span>Correo de Google</span>
+                <input id="member-email" type="email" autocomplete="off" maxlength="254" required placeholder="jugador@gmail.com" />
+              </label>
+              <label>
+                <span>Nombre del personaje</span>
+                <input id="member-character" type="text" maxlength="40" required placeholder="Nombre" />
+              </label>
+              <button class="button button-primary" type="submit">Agregar personaje</button>
+            </form>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="item-dialog" class="dialog">
+      <form id="item-form" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Inventario</p>
+            <h2 id="item-dialog-title">Nuevo objeto</h2>
+          </div>
+          <button id="close-dialog" class="icon-button" type="button" aria-label="Cerrar">×</button>
+        </div>
+        <input id="item-id" type="hidden" />
+        <div class="form-stack">
+          <label>
+            <span>Nombre</span>
+            <input id="item-name" type="text" maxlength="80" required placeholder="Ej. Medpac" />
+          </label>
+          <label>
+            <span>Cantidad</span>
+            <input id="item-quantity" type="number" min="1" max="999999" step="1" required value="1" />
+          </label>
+          <label>
+            <span>Descripción o notas</span>
+            <textarea id="item-notes" maxlength="400" rows="4" placeholder="Detalles, estado, procedencia…"></textarea>
+          </label>
+          <label>
+            <span>Estado</span>
+            <select id="item-status">
+              <option value="guardado">Guardado</option>
+              <option value="equipado">Equipado</option>
+            </select>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button id="delete-item" class="button button-danger" type="button" hidden>Eliminar</button>
+          <div class="dialog-actions-right">
+            <button id="cancel-item" class="button button-secondary" type="button">Cancelar</button>
+            <button class="button button-primary" type="submit">Guardar</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
