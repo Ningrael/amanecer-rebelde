@@ -1,4 +1,4 @@
-const CACHE_NAME = "amanecer-rebelde-v4";
+const CACHE_NAME = "amanecer-rebelde-v5";
 const APP_SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./firebase-config.js", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {

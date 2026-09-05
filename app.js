@@ -137,9 +137,9 @@ function handleDataError(error) {
 
 function renderCharacterTabs() {
   $("#character-tabs").innerHTML = state.characters.map((character) => `
-    <button class="character-chip ${character.id === state.activeCharacterId ? "is-active" : ""}" type="button" role="tab" aria-selected="${character.id === state.activeCharacterId}" data-character-id="${escapeHtml(character.id)}">
+    <button class="character-chip ${character.id === state.activeCharacterId ? "is-active" : ""} ${character.id === state.member?.characterId ? "is-own" : ""}" type="button" role="tab" aria-selected="${character.id === state.activeCharacterId}" data-character-id="${escapeHtml(character.id)}">
       <strong>${escapeHtml(character.name)}</strong>
-      <span>${character.id === state.member?.characterId ? "Tu personaje" : "Tripulante"}</span>
+      <span>${character.id === state.member?.characterId ? "Tuyo" : "Inventario"}</span>
     </button>
   `).join("");
 }
@@ -168,16 +168,15 @@ function renderCharacterPanel() {
         ${item.notes ? `<p>${escapeHtml(item.notes)}</p>` : ""}
       </span>
       <span class="item-status ${item.status === "equipado" ? "equipado" : ""}">${item.status === "equipado" ? "Equipado" : "Guardado"}</span>
-      <span class="item-quantity" aria-label="Cantidad ${Number(item.quantity) || 1}">${Number(item.quantity) || 1}</span>
+      <span class="item-quantity" aria-label="Cantidad ${Number(item.quantity) || 1}">×${Number(item.quantity) || 1}</span>
     </button>
   `).join("") : `<div class="empty-state"><strong>Inventario vacío</strong>Agregá el primer objeto de ${escapeHtml(character.name)}.</div>`;
 
   $("#character-panel").innerHTML = `
     <article class="panel character-hero">
-      <div>
-        <p class="eyebrow">Ficha de personaje</p>
+      <div class="character-heading">
+        <p class="eyebrow">Personaje</p>
         <h3>${escapeHtml(character.name)}</h3>
-        <p>Inventario compartido de la tripulación</p>
       </div>
       <div class="credits-box">
         <label for="credits-input">Créditos</label>
@@ -189,11 +188,11 @@ function renderCharacterPanel() {
     </article>
     <article class="panel inventory-panel">
       <div class="panel-heading">
-        <div>
+        <div class="inventory-title">
           <h3>Objetos</h3>
-          <p>${state.items.length} ${state.items.length === 1 ? "registro" : "registros"}</p>
+          <span>${state.items.length}</span>
         </div>
-        <button id="add-item-button" class="button button-primary add-button" type="button">+ Objeto</button>
+        <button id="add-item-button" class="button button-primary add-button" type="button">+ Añadir</button>
       </div>
       <div class="items-list">${itemsMarkup}</div>
     </article>
