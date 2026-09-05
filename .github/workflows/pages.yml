@@ -28,7 +28,7 @@ jobs:
       - name: Preparar archivos públicos
         run: |
           mkdir _site
-          cp index.html styles.css app.js firebase-config.js manifest.webmanifest sw.js icon.svg icon-192.png icon-512.png _site/
+          cp index.html styles.css app.js inventory-utils.js catalog.js firebase-config.js manifest.webmanifest sw.js icon.svg icon-192.png icon-512.png _site/
       - name: Empaquetar aplicación
         uses: actions/upload-pages-artifact@v3
         with:

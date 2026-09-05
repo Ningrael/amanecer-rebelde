@@ -60,7 +60,7 @@
         <div class="brand-compact">
           <div class="brand-mark brand-mark-small" aria-hidden="true">AR</div>
           <div>
-            <p class="eyebrow">Inventario compartido</p>
+            <p class="eyebrow">Terminal de campaña · Revised d20</p>
             <h1>Amanecer Rebelde</h1>
           </div>
         </div>
@@ -82,21 +82,65 @@
 
       <nav class="tabbar" aria-label="Secciones">
         <button class="tab is-active" type="button" data-view="inventories">Inventarios</button>
-        <button id="settings-tab" class="tab" type="button" data-view="settings" hidden>Configuración</button>
+        <button class="tab" type="button" data-view="table">La mesa</button>
+        <button class="tab" type="button" data-view="catalog">Catálogo</button>
+        <button id="settings-tab" class="tab" type="button" data-view="settings" hidden>Ajustes</button>
       </nav>
 
       <main class="content">
         <section id="inventories-section">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Tripulación</p>
-              <h2>Inventarios</h2>
+              <h2>Tripulación</h2>
             </div>
             <span id="sync-status" class="sync-status">En línea</span>
           </div>
 
-          <div id="character-tabs" class="character-tabs" role="tablist" aria-label="Personajes"></div>
+          <div id="character-tabs" class="character-tabs" role="group" aria-label="Seleccionar inventario"></div>
           <div id="character-panel" class="character-panel"></div>
+          <article class="panel inventory-panel">
+            <div class="panel-heading">
+              <div class="inventory-title"><h3>Equipo</h3><span id="items-count">0</span></div>
+              <button id="add-item-button" class="button button-primary add-button" type="button">+ Objeto</button>
+            </div>
+            <div class="inventory-tools">
+              <label class="search-field"><span class="sr-only">Buscar en este inventario</span><input id="item-search" type="search" placeholder="Buscar objeto o nota…" autocomplete="off" /></label>
+              <label class="sort-field"><span class="sr-only">Ordenar objetos</span><select id="item-sort"><option value="name">Nombre A–Z</option><option value="recent">Últimos cambios</option><option value="quantity">Cantidad</option></select></label>
+            </div>
+            <div id="item-filters" class="filterbar" role="group" aria-label="Filtrar equipo">
+              <button class="filter is-active" type="button" data-filter="all" aria-pressed="true">Todo</button>
+              <button class="filter" type="button" data-filter="equipado" aria-pressed="false">Equipado</button>
+              <button class="filter" type="button" data-filter="guardado" aria-pressed="false">Guardado</button>
+              <span id="items-summary" class="muted"></span>
+            </div>
+            <div id="items-list" class="items-list"></div>
+          </article>
+          <p class="surface-note">Tocá un objeto para ver sus notas. Todos podéis editar todos los inventarios.</p>
+        </section>
+
+        <section id="table-section" hidden>
+          <div class="section-heading"><div><p class="eyebrow">Vista compartida</p><h2>La mesa</h2></div><button id="export-backup" class="button button-secondary small-button" type="button">↓ Copia de datos</button></div>
+          <div id="table-summary" class="table-summary"></div>
+          <div id="table-characters" class="table-characters"></div>
+          <article class="panel inventory-panel">
+            <div class="panel-heading"><div><h3>¿Quién lleva qué?</h3><p>Buscá entre los objetos de toda la mesa.</p></div></div>
+            <div class="inventory-tools"><label class="search-field"><span class="sr-only">Buscar en toda la mesa</span><input id="table-search" type="search" placeholder="Medpac, bláster, personaje…" autocomplete="off" /></label></div>
+            <div id="table-items" class="items-list"></div>
+          </article>
+          <p class="surface-note">El máster tiene una vista general; su inventario sigue compartido. No guardéis aquí secretos de la aventura.</p>
+        </section>
+
+        <section id="catalog-section" hidden>
+          <div class="section-heading"><div><p class="eyebrow">Manual Básico Revisado</p><h2>Catálogo de equipo</h2></div><button id="catalog-custom" class="button button-secondary small-button" type="button">+ Objeto propio</button></div>
+          <article class="panel catalog-toolbar">
+            <label><span>Añadir al inventario de</span><select id="catalog-character" aria-label="Personaje destinatario"></select></label>
+            <label class="search-field"><span>Buscar en el manual</span><input id="catalog-search" type="search" autocomplete="off" placeholder="Bláster, medpac, comunicador…" /></label>
+            <label><span>Tipo</span><select id="catalog-category"><option value="all">Todo el equipo</option value="Armas">Armas</option><option value="Blindaje">Blindaje</option><option value="Equipo">Equipo</option><option value="Munición">Munición</option></select></label>
+          </article>
+          <p class="surface-note">Tocá un objeto para leerlo y ajustar la cantidad antes de guardarlo. Los precios son de referencia: no se descuentan créditos. Los lotes cuentan como un objeto.</p>
+          <p id="catalog-count" class="muted" role="status"></p>
+          <div id="catalog-list" class="catalog-list"></div>
+          <p class="surface-note">Equipo del capítulo 7: armas (p. 132), blindajes (p. 138) y equipo (p. 143). Descripciones resumidas, no texto literal. No incluye vehículos, servicios ni suplementos. El máster decide disponibilidad y precio.</p>
         </section>
 
         <section id="settings-section" hidden>
@@ -140,16 +184,21 @@
       </main>
     </div>
 
-    <dialog id="item-dialog" class="dialog">
+    <dialog id="credits-dialog" class="dialog" aria-labelledby="credits-dialog-title">
+      <form id="credits-form"><div class="dialog-heading"><div><p class="eyebrow" id="credits-character"></p><h2 id="credits-dialog-title">Saldo de créditos</h2></div><button class="icon-button" type="button" data-close="credits-dialog" aria-label="Cerrar">×</button></div><label><span>Nuevo saldo total</span><input id="credits-input" type="number" min="0" max="1000000000" step="1" inputmode="numeric" required /></label><p class="surface-note">Se guarda al confirmar, no al tocar el saldo.</p><p id="credits-error" class="form-error" role="alert" hidden></p><div class="dialog-actions-right"><button class="button button-secondary" type="button" data-close="credits-dialog">Cancelar</button><button class="button button-primary" type="submit">Guardar saldo</button></div></form>
+    </dialog>
+
+    <dialog id="item-dialog" class="dialog" aria-labelledby="item-dialog-title">
       <form id="item-form" method="dialog">
         <div class="dialog-heading">
           <div>
-            <p class="eyebrow">Inventario</p>
+            <p id="item-owner" class="eyebrow">Inventario</p>
             <h2 id="item-dialog-title">Nuevo objeto</h2>
           </div>
           <button id="close-dialog" class="icon-button" type="button" aria-label="Cerrar">×</button>
         </div>
         <input id="item-id" type="hidden" />
+        <details id="item-reference" class="item-reference" hidden><summary>Referencia del manual</summary><div id="item-reference-body"></div></details>
         <div class="form-stack">
           <label>
             <span>Nombre</span>
@@ -161,7 +210,8 @@
           </label>
           <label>
             <span>Descripción o notas</span>
-            <textarea id="item-notes" maxlength="400" rows="4" placeholder="Detalles, estado, procedencia…"></textarea>
+            <textarea id="item-notes" maxlength="400" rows="4" placeholder="Daño · crítico · alcance · peso · cargas · procedencia…"></textarea>
+            <small id="notes-counter" class="muted">0 / 400</small>
           </label>
           <label>
             <span>Estado</span>
@@ -171,6 +221,7 @@
             </select>
           </label>
         </div>
+        <p id="item-error" class="form-error" role="alert" hidden></p>
         <div class="dialog-actions">
           <button id="delete-item" class="button button-danger" type="button" hidden>Eliminar</button>
           <div class="dialog-actions-right">
@@ -180,6 +231,8 @@
         </div>
       </form>
     </dialog>
+
+    <div id="update-banner" class="update-banner" hidden><span>Hay una nueva versión disponible.</span><button id="apply-update" class="button button-primary small-button" type="button">Actualizar</button></div>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
