@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
+  indexedDBLocalPersistence,
   getRedirectResult,
   signInWithPopup,
   signInWithRedirect,
@@ -15,6 +16,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocFromServer,
   getDocsFromServer,
   getFirestore,
   onSnapshot,
@@ -59,6 +61,7 @@ const views = {
   login: $("#login-view"),
   denied: $("#denied-view"),
   loading: $("#loading-view"),
+  reconnect: $('#reconnect-view'),
   app: $("#app-view")
 };
 
@@ -95,7 +98,7 @@ function showAuthHelp(error) {
 
 async function resolveAccess(user) {
   const email = normalizeEmail(user.email);
-  const memberSnap = await getDoc(doc(db, "members", email));
+  const memberSnap = await getDocFromServer(doc(db, "members", email));
   return memberSnap.exists() ? memberSnap.data() : null;
 }
 
@@ -145,7 +148,7 @@ function startRealtimeListeners() {
   }
   state.unsubscribeAccess = onSnapshot(doc(db, 'members', normalizeEmail(state.user.email)), (snapshot) => {
     if (!snapshot.exists()) { revokeAccess(); return; }
-    if (snapshot.data().role !== state.member?.role) { signOut(auth).catch(handleDataError); }
+    if (snapshot.data().role !== state.member?.role) { restoreSession(state.user); }
   }, handleDataError);
 }
 
@@ -630,14 +633,27 @@ $("#install-button").addEventListener("click", async () => {
 });
 
 window.addEventListener("appinstalled", () => { $("#install-button").hidden = true; toast("Aplicación instalada."); });
-window.addEventListener('online', renderSync);
+window.addEventListener('online', () => {
+  renderSync();
+  if (!views.reconnect.hidden && auth.currentUser) restoreSession(auth.currentUser);
+});
 window.addEventListener('offline', renderSync);
 
-try {
-  await setPersistence(auth, browserLocalPersistence);
-} catch (error) {
-  console.warn("No se pudo activar la sesión persistente:", safeAuthCode(error));
+async function configureSessionPersistence() {
+  // Keep existing local sessions; try another durable store if localStorage is unavailable.
+  for (const persistence of [browserLocalPersistence, indexedDBLocalPersistence]) {
+    try {
+      await setPersistence(auth, persistence);
+      return true;
+    } catch (error) {
+      console.warn('Persistent session storage unavailable:', safeAuthCode(error));
+    }
+  }
+  $('#session-storage-warning').hidden = false;
+  return false;
 }
+await configureSessionPersistence();
+$('#login-button').disabled = false;
 
 try {
   await getRedirectResult(auth);
@@ -645,7 +661,7 @@ try {
   showAuthHelp(error);
 }
 
-onAuthStateChanged(auth, async (user) => {
+async function restoreSession(user) {
   const generation = ++state.authGeneration;
   clearPrivateView(); state.user = user;
   if (!user) {
@@ -670,11 +686,17 @@ onAuthStateChanged(auth, async (user) => {
     showOnly("app");
   } catch (error) {
     if (generation !== state.authGeneration) return;
-    console.error(error);
-    toast("No se pudo verificar el acceso.");
-    await signOut(auth);
+    if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+      revokeAccess();
+      return;
+    }
+    console.warn('Access check unavailable:', error.code || 'unknown');
+    // Authorization remains closed, but a transient network error must never erase Auth.
+    showOnly('reconnect');
   }
-});
+}
+onAuthStateChanged(auth, restoreSession);
+$('#retry-session').addEventListener('click', () => restoreSession(auth.currentUser));
 
 if ("serviceWorker" in navigator) {
   let workerRegistration;

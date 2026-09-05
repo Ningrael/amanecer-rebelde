@@ -19,17 +19,18 @@
   <body>
     <div class="starfield" aria-hidden="true"></div>
 
-    <main id="login-view" class="auth-shell">
+    <main id="login-view" class="auth-shell" hidden>
       <section class="auth-card">
         <div class="brand-mark" aria-hidden="true">AR</div>
         <p class="eyebrow">Registro de la tripulación</p>
         <h1>Amanecer Rebelde</h1>
         <p class="auth-copy">Inventario y créditos compartidos de la mesa.</p>
-        <button id="login-button" class="button button-primary button-wide" type="button">
+        <button id="login-button" class="button button-primary button-wide" type="button" disabled>
           <span class="google-g">G</span>
           Entrar con Google
         </button>
         <p class="privacy-note">Solo pueden acceder los correos autorizados por los administradores.</p>
+        <p id="session-storage-warning" class="auth-help" role="status" hidden>Este navegador no permite recordar la sesión. Permití el almacenamiento de este sitio y evitá el modo incógnito.</p>
         <p class="browser-note">¿Abriste el enlace desde WhatsApp, ChatGPT u otra app? Usá el menú <strong>⋮</strong> y elegí <strong>Abrir en Chrome</strong> o Safari.</p>
         <div id="auth-help" class="auth-help" role="alert" hidden>
           <strong>Google no pudo abrirse en este navegador.</strong>
@@ -50,9 +51,18 @@
       </section>
     </main>
 
-    <div id="loading-view" class="loading-shell" hidden>
+    <main id="reconnect-view" class="auth-shell" hidden>
+      <section class="auth-card">
+        <p class="eyebrow">Sesión guardada</p>
+        <h1>Esperando conexión</h1>
+        <p class="auth-copy">No pudimos comprobar el acceso a los inventarios. Tu sesión sigue guardada; volveremos a intentarlo cuando regrese la conexión.</p>
+        <button id="retry-session" class="button button-primary button-wide" type="button">Reintentar</button>
+      </section>
+    </main>
+
+    <div id="loading-view" class="loading-shell">
       <div class="loader" aria-hidden="true"></div>
-      <p>Conectando con la tripulación…</p>
+      <p>Recuperando tu sesión…</p>
     </div>
 
     <div id="app-view" class="app-shell" hidden>

@@ -50,6 +50,8 @@ Para volver a la interfaz anterior, revertir el commit de esta actualización en
 
 ## Seguridad
 
+La sesión de Google se conserva en almacenamiento persistente del navegador, con alternativa en IndexedDB si el almacenamiento local no está disponible. Una comprobación de permisos fallida por conexión no cierra la sesión: bloquea la vista de datos y permite reintentar. Al recuperar conectividad se reintenta automáticamente. Cada reapertura verifica los permisos con el servidor; recordar la sesión no conserva permisos retirados. Cerrar sesión voluntariamente, borrar datos del navegador o una revocación de Google/Firebase puede requerir volver a entrar. La persistencia corresponde al mismo navegador/perfil, no a todos los navegadores del dispositivo.
+
 La configuración pública de Firebase identifica el proyecto, pero no concede acceso a los datos. Las reglas de `firestore.rules` exigen autenticación y pertenencia a la lista privada de miembros para leer o modificar inventarios. Los correos de los jugadores no se publican en el repositorio.
 
 ## Publicación
