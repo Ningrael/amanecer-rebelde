@@ -95,6 +95,11 @@ h1, h2, h3 { font-family: "Rajdhani", sans-serif; line-height: 1.05; }
 .auth-card h1 { margin-bottom: 12px; font-size: clamp(36px, 10vw, 54px); }
 .auth-copy { margin-bottom: 28px; color: var(--muted); line-height: 1.55; }
 .privacy-note { margin: 18px auto 0; max-width: 32ch; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.browser-note { margin: 12px auto 0; max-width: 36ch; color: #bfd1e2; font-size: 12px; line-height: 1.5; }
+.browser-note strong { color: var(--text); }
+.auth-help { display: grid; gap: 5px; margin-top: 18px; padding: 13px 14px; border: 1px solid rgba(255,124,140,.3); border-radius: 12px; background: rgba(255,124,140,.08); color: var(--text); font-size: 12px; line-height: 1.45; text-align: left; }
+.auth-help span, .auth-help small { color: var(--muted); }
+.auth-help code { color: var(--danger); font-size: 11px; }
 
 .button {
   min-height: 46px;
@@ -106,6 +111,7 @@ h1, h2, h3 { font-family: "Rajdhani", sans-serif; line-height: 1.05; }
   transition: transform .15s ease, border-color .15s ease, background .15s ease;
 }
 .button:active { transform: translateY(1px) scale(.99); }
+.button:disabled { cursor: wait; opacity: .7; }
 .button-primary { background: var(--accent); color: #041019; }
 .button-primary:hover { background: #9ce5ff; }
 .button-secondary { background: rgba(255,255,255,.04); border-color: var(--border); color: var(--text); }

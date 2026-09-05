@@ -5,7 +5,9 @@ import {
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
+  getRedirectResult,
   signInWithPopup,
+  signInWithRedirect,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import {
@@ -26,6 +28,7 @@ import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+auth.useDeviceLanguage();
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
@@ -68,6 +71,19 @@ function toast(message) {
   element.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { element.hidden = true; }, 3200);
+}
+
+function safeAuthCode(error) {
+  const code = typeof error?.code === "string" ? error.code : "auth/unknown";
+  return code.startsWith("auth/") ? code.slice(5) : "unknown";
+}
+
+function showAuthHelp(error) {
+  const code = safeAuthCode(error);
+  console.error("Google sign-in failed:", code, error);
+  $("#auth-error-code").textContent = code;
+  $("#auth-help").hidden = false;
+  toast(`No se pudo iniciar sesión (${code}).`);
 }
 
 async function resolveAccess(user) {
@@ -274,11 +290,29 @@ function switchSection(view) {
 }
 
 async function login() {
+  const button = $("#login-button");
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  $("#auth-help").hidden = true;
   try {
     await signInWithPopup(auth, provider);
   } catch (error) {
-    if (error.code === "auth/popup-blocked") toast("El navegador bloqueó la ventana de Google. Permití ventanas emergentes e intentá otra vez.");
-    else if (error.code !== "auth/popup-closed-by-user") toast("No se pudo iniciar sesión con Google.");
+    if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") return;
+
+    if (error.code === "auth/popup-blocked" || error.code === "auth/operation-not-supported-in-this-environment") {
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectError) {
+        showAuthHelp(redirectError);
+        return;
+      }
+    }
+
+    showAuthHelp(error);
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
   }
 }
 
@@ -348,7 +382,18 @@ window.addEventListener("appinstalled", () => { $("#install-button").hidden = tr
 window.addEventListener("online", () => { $("#sync-status").textContent = "En línea"; $("#sync-status").style.color = ""; });
 window.addEventListener("offline", () => { $("#sync-status").textContent = "Sin conexión"; $("#sync-status").style.color = "var(--danger)"; });
 
-await setPersistence(auth, browserLocalPersistence);
+try {
+  await setPersistence(auth, browserLocalPersistence);
+} catch (error) {
+  console.warn("No se pudo activar la sesión persistente:", safeAuthCode(error));
+}
+
+try {
+  await getRedirectResult(auth);
+} catch (error) {
+  showAuthHelp(error);
+}
+
 onAuthStateChanged(auth, async (user) => {
   state.unsubscribeCharacters?.();
   state.unsubscribeItems?.();
