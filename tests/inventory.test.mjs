@@ -154,6 +154,8 @@ test('Todos los módulos y assets están en Pages; sin PDF ni copias de datos p�
   const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
   assert.equal(new Set(ids).size, ids.length);
+  assert.doesNotMatch(html, /<\/[^>]*=/);
+  assert.match(html, /<option value="Armas">Armas<\/option>/);
   assert.doesNotMatch(html, /dice-section|dice-form/);
   assert.match(html, /https:\/\/apis.google.com/);
   assert.doesNotMatch(html, /unsafe-inline|unsafe-eval/);

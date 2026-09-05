@@ -1,4 +1,4 @@
-const CACHE_NAME = "amanecer-rebelde-v7";
+const CACHE_NAME = "amanecer-rebelde-v8";
 const APP_SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./inventory-utils.js", "./catalog.js", "./firebase-config.js", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 const SHELL_URLS = new Set(APP_SHELL.map((path) => new URL(path, self.registration.scope).href));
 
