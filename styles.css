@@ -199,7 +199,7 @@ h1, h2, h3 { font-family: "Rajdhani", sans-serif; line-height: 1.05; }
 .character-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin: 0 0 12px; }
 .character-chip { min-width: 0; min-height: 50px; padding: 7px 5px; overflow: hidden; border: 1px solid var(--border); border-radius: 11px; background: rgba(15,23,36,.72); color: var(--muted); text-align: center; cursor: pointer; }
 .character-chip strong { display: block; overflow: hidden; color: var(--text); font-family: "Rajdhani", sans-serif; font-size: 16px; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
-.character-chip span { display: block; margin-top: 3px; overflow: hidden; font-size: 8px; font-weight: 700; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.character-chip span { display: block; margin-top: 3px; overflow: hidden; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .character-chip.is-own:not(.is-active) span { color: #bfd1e2; }
 .character-chip.is-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 24px rgba(112,213,255,.04); }
 .character-chip.is-active strong, .character-chip.is-active span { color: var(--accent); }
@@ -233,7 +233,7 @@ h1, h2, h3 { font-family: "Rajdhani", sans-serif; line-height: 1.05; }
 .item-copy { min-width: 0; }
 .item-copy strong { display: block; overflow: hidden; font-size: 14px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 .item-copy p { margin: 2px 0 0; overflow: hidden; color: var(--muted); font-size: 11px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
-.item-status { padding: 4px 6px; border-radius: 999px; background: rgba(255,255,255,.05); color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .035em; text-transform: uppercase; }
+.item-status { padding: 4px 6px; border-radius: 999px; background: rgba(255,255,255,.05); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
 .item-status.equipado { background: var(--accent-soft); color: var(--accent); }
 .item-quantity { min-width: 30px; height: 27px; display: grid; place-items: center; padding: 0 5px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); font-size: 12px; font-weight: 800; }
 .empty-state { padding: 30px 18px; text-align: center; color: var(--muted); }
